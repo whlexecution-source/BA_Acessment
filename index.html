@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบประเมินผู้สมัคร BA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #F6F9F9;
+    --surface: #FFFFFF;
+    --surface-2: #EEF4F4;
+    --ink: #17282B;
+    --muted: #5B7276;
+    --line: #D8E4E5;
+    --accent: #0E7C86;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E0F0F1;
+    --good: #1B8A5A;
+    --good-soft: #E2F3EA;
+    --warn: #B07C10;
+    --warn-soft: #FBF0D9;
+    --bad: #C0392B;
+    --bad-soft: #FAE5E2;
+    --shadow: 0 1px 3px rgba(23,40,43,.08), 0 4px 16px rgba(23,40,43,.06);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Sarabun', 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.55;
+  }
+  h1,h2,h3 { font-family: 'IBM Plex Sans Thai','Sarabun',sans-serif; text-wrap: balance; margin: 0; }
+  button { font-family: inherit; font-size: inherit; cursor: pointer; }
+  input, select, textarea {
+    font-family: inherit; font-size: inherit; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px 12px; width: 100%;
+  }
+  input:focus, select:focus, textarea:focus, button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+  [hidden] { display: none !important; }
+
+  .topbar {
+    background: var(--surface); border-bottom: 1px solid var(--line);
+    padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar .logo {
+    font-family: 'IBM Plex Sans Thai',sans-serif; font-weight: 700; font-size: 17px;
+    color: var(--accent); letter-spacing: .2px;
+  }
+  .topbar .who { margin-left: auto; font-size: 13px; color: var(--muted); text-align: right; }
+  .topbar .who b { color: var(--ink); font-weight: 600; }
+
+  .wrap { max-width: 860px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: var(--shadow); padding: 20px;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    border-radius: 10px; padding: 10px 18px; font-weight: 600; min-height: 44px;
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.primary:disabled { opacity: .5; cursor: default; }
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--accent); }
+
+  .chip {
+    display: inline-block; padding: 2px 10px; border-radius: 999px;
+    font-size: 12.5px; font-weight: 600; white-space: nowrap;
+  }
+  .chip.teal { background: var(--accent-soft); color: var(--accent); }
+  .chip.good { background: var(--good-soft); color: var(--good); }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); }
+  .chip.bad  { background: var(--bad-soft);  color: var(--bad); }
+  .chip.mute { background: var(--surface-2); color: var(--muted); }
+
+  .eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 4px;
+  }
+  .field-label { font-size: 13px; font-weight: 600; color: var(--muted); margin: 14px 0 4px; }
+  .msg-error {
+    background: var(--bad-soft); color: var(--bad); border-radius: 10px;
+    padding: 10px 14px; margin-top: 14px; font-weight: 500;
+  }
+
+  /* login */
+  .login-page { min-height: 100dvh; display: grid; place-items: center; padding: 16px; }
+  .login-card { width: 100%; max-width: 380px; text-align: center; }
+  .login-card h1 { font-size: 22px; margin: 6px 0 2px; }
+  .login-card p { color: var(--muted); margin: 0 0 18px; }
+  .login-mark {
+    width: 52px; height: 52px; border-radius: 14px; margin: 0 auto 10px;
+    background: var(--accent); color: var(--accent-ink);
+    display: grid; place-items: center;
+    font-family: 'IBM Plex Sans Thai',sans-serif; font-weight: 700; font-size: 20px;
+  }
+
+  /* list */
+  .list-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .list-head h2 { font-size: 19px; }
+  .list-head .spacer { flex: 1; }
+  .search { max-width: 240px; }
+  .cand {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--surface); margin-bottom: 10px; box-shadow: var(--shadow);
+  }
+  .cand .info { flex: 1; min-width: 0; }
+  .cand .name { font-weight: 700; }
+  .cand .meta { font-size: 13px; color: var(--muted); }
+  .cand .results { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+  /* form sections */
+  .section { margin-top: 22px; }
+  .section > .card { padding: 18px 20px; }
+  .section h3 { font-size: 16px; margin-bottom: 2px; }
+  .section .sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+
+  .mh-row {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 0; border-top: 1px solid var(--line);
+  }
+  .mh-row:first-of-type { border-top: 0; }
+  .mh-row .txt { flex: 1; }
+  .mh-row .txt b { display: block; }
+  .mh-row .txt span { font-size: 13px; color: var(--muted); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; flex-shrink: 0; }
+  .seg button { border: 0; background: var(--surface); padding: 7px 14px; font-weight: 600; color: var(--muted);
+    min-height: 44px; min-width: 64px; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button.on-pass { background: var(--good); color: #fff; }
+  .seg button.on-fail { background: var(--bad); color: #fff; }
+
+  .comp { padding: 16px 0; border-top: 1px solid var(--line); }
+  .comp:first-of-type { border-top: 0; }
+  .comp .comp-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .comp .comp-head b { font-size: 15px; }
+  .comp .weight { color: var(--muted); font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .comp .task {
+    background: var(--accent-soft); color: var(--accent); border-radius: 8px;
+    font-size: 13px; padding: 8px 12px; margin-top: 8px;
+  }
+  .rate-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+  .rate {
+    text-align: left; border: 1.5px solid var(--line); border-radius: 10px;
+    background: var(--surface); padding: 10px 12px; color: var(--ink); min-height: 44px;
+  }
+  .rate .lv { font-weight: 700; font-size: 13.5px; display: flex; justify-content: space-between; }
+  .rate .lv .pts { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .rate .desc { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .rate.sel { border-color: var(--accent); background: var(--accent-soft); }
+  .rate.sel .lv, .rate.sel .desc { color: var(--accent); }
+  textarea.q-comment { margin-top: 10px; min-height: 52px; resize: vertical; }
+
+  /* score bar */
+  .scorebar {
+    position: sticky; bottom: 0; margin-top: 26px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: var(--shadow); padding: 14px 18px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .scorebar .total { font-family:'IBM Plex Sans Thai',sans-serif; font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .scorebar .total small { font-size: 14px; color: var(--muted); font-weight: 500; }
+  .scorebar .rec { flex: 1; min-width: 160px; }
+  .scorebar .rec .lbl { font-size: 12px; color: var(--muted); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 620px) {
+    .rate-row { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .cand { flex-wrap: wrap; align-items: stretch; }
+    .cand .info { flex: 1 0 100%; }
+    .cand .results { justify-content: flex-start; }
+    .cand > .btn { margin-left: auto; }
+
+    /* ช่องกรอกบนมือถือ: 16px กัน iOS ซูมเองตอนแตะ + สูงพอสำหรับนิ้ว */
+    input, select, textarea { font-size: 16px; min-height: 44px; }
+
+    /* (4) topbar บรรทัดเดียว */
+    .topbar { padding: 8px 14px; gap: 8px; }
+    .topbar .logo { font-size: 15px; white-space: nowrap; }
+    .topbar .who { font-size: 12px; line-height: 1.3; }
+    .topbar .who .role-line { display: none; }
+
+    /* (1) แถบคะแนนแถวเดียว — คืนพื้นที่อ่านเนื้อหา */
+    .wrap { padding: 14px 14px 24px; }
+    .scorebar {
+      margin: 18px -14px 0; border-radius: 14px 14px 0 0; border-bottom: 0;
+      padding: 8px 14px calc(8px + env(safe-area-inset-bottom));
+      gap: 10px; flex-wrap: nowrap;
+    }
+    .scorebar .lbl { display: none; }
+    .scorebar .stack { display: flex; align-items: baseline; gap: 8px; }
+    .scorebar .total { font-size: 20px; }
+    .scorebar .rec { flex: 1 1 auto; min-width: 0; }
+    .scorebar .chip { white-space: normal; }
+    .scorebar .btn { flex-shrink: 0; padding: 10px 14px; }
+  }
+
+  /* summary compare */
+  table.cmp { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.cmp th, table.cmp td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  table.cmp td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+  table.cmp th { color: var(--muted); font-size: 12.5px; font-weight: 600; }
+  table.cmp .q-note { display: block; font-weight: 400; font-size: 12.5px; color: var(--muted);
+    white-space: normal; text-align: right; margin-top: 2px; font-variant-numeric: normal; }
+  table.cmp td.num { max-width: 220px; }
+  .cmp-wrap { overflow-x: auto; }
+
+  .loading { text-align: center; color: var(--muted); padding: 60px 0; }
+  @media (prefers-reduced-motion: no-preference) {
+    .view { animation: fade .18s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px); } }
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+'use strict';
+
+/* ================================================================
+   CONFIG — วาง URL ของ Apps Script Web App (ลงท้าย /exec) ตรงนี้
+   ห้ามใส่ API key หรือรหัสผ่านใดๆ ในไฟล์นี้
+================================================================ */
+const CONFIG = {
+  API_URL: 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'
+};
+
+/* ---------------- เกณฑ์ประเมิน (ตาม BA_Candidate_Assessment_Watsons.xlsx) */
+
+const PRESCREEN = [
+  { id: 1, name: 'ค่าตอบแทน',              confirm: 'ยอมรับเงินเดือน + Incentive ตามที่แจ้ง' },
+  { id: 2, name: 'การเดินทาง / สาขา',       confirm: 'สามารถเดินทางและทำงานสาขาที่กำหนดได้' },
+  { id: 3, name: 'เงื่อนไขการทำงาน',        confirm: 'รับวัน/เวลาทำงาน และการยืนขายหน้าร้านได้' },
+  { id: 4, name: 'เข้าใจงานและ KPI',        confirm: 'เข้าใจว่าเป็นงานขาย มีเป้าหมาย (Target) และ KPI' },
+  { id: 5, name: 'วันเริ่มงาน',             confirm: 'สามารถเริ่มงานตามวันที่กำหนด' },
+  { id: 6, name: 'ข้อเสนออื่น / ภาระผูกพัน', confirm: 'ไม่มีข้อเสนอที่อื่นหรือเงื่อนไขที่เสี่ยงต่อการสละสิทธิ์' },
+  { id: 7, name: 'การโยกย้ายสาขา',         confirm: 'สามารถโยกย้ายไปสาขาอื่นๆ ที่ใกล้เคียงได้' }
+];
+
+const COMPETENCIES = [
+  { id: 1, name: 'ประสบการณ์งานขายที่เกี่ยวข้อง', en: 'Relevant Sales Experience', weight: 15,
+    scores: { High: 15, Medium: 10, Low: 5 },
+    desc: { High: 'PC/BA หรือสายใกล้เคียง และอธิบาย Role/ผลงานได้ชัด',
+            Medium: 'มีประสบการณ์ขายใกล้เคียง Transfer Skill ได้',
+            Low: 'ประสบการณ์น้อย/ยังไม่เห็น Potential' } },
+  { id: 2, name: 'การสื่อสารและทักษะการขาย', en: 'Communication & Selling Skill', weight: 20,
+    scores: { High: 20, Medium: 12, Low: 5 },
+    desc: { High: 'ถาม Need → Recommend → Handle Objection → Close ได้',
+            Medium: 'สื่อสารดี แต่ Selling Flow/Closing ยังไม่ครบ',
+            Low: 'เน้นบอกสินค้า ยังไม่สามารถนำการขายได้' } },
+  { id: 3, name: 'การดูแลลูกค้าและการแก้ปัญหา', en: 'Customer & Problem Solving', weight: 15,
+    scores: { High: 15, Medium: 10, Low: 5 },
+    desc: { High: 'คิด Plan A/B และเสนอ Solution ได้ด้วยตัวเอง',
+            Medium: 'มีแนวทาง แต่ยังต้อง Guidance',
+            Low: 'รอคำสั่ง/โฟกัสข้อจำกัด/ไม่มีทางออก' } },
+  { id: 4, name: 'ความมุ่งมั่นต่อเป้าหมาย', en: 'Target & Achievement Mindset', weight: 20,
+    scores: { High: 20, Medium: 12, Low: 5 },
+    desc: { High: 'บอก Target + Actual + Achievement + Action ได้ชัด',
+            Medium: 'เข้าใจ Target แต่ตัวเลข/Action ยังไม่ชัด',
+            Low: 'ตอบกว้าง ไม่มี Action หรือโทษปัจจัยภายนอก' } },
+  { id: 5, name: 'บทบาทสมมติการขาย', en: 'Sales Role Play', weight: 20,
+    task: 'โจทย์เดียวกันทุกคน: ลูกค้าเข้ามาที่ร้าน สนใจอาหารเสริมแต่ยังไม่รู้ว่าจะซื้ออะไร ให้แนะนำและขายภายใน 3 นาที (Approach → Ask Need → Recommend → Handle Objection → Close)',
+    scores: { High: 20, Medium: 12, Low: 0 },
+    desc: { High: 'ครบทุก Step และปิดการขายได้',
+            Medium: 'ขาดบาง Step',
+            Low: 'Product Talk / ไม่ถาม Need / ไม่ Close' } },
+  { id: 6, name: 'ความรับผิดชอบและการเรียนรู้', en: 'Ownership & Learning Agility', weight: 10,
+    scores: { High: 10, Medium: 5, Low: 0 },
+    desc: { High: 'Proactive มีตัวอย่างเรียนรู้/แก้ปัญหาเอง',
+            Medium: 'พร้อมเรียนรู้ แต่ยังต้อง Coach',
+            Low: 'Passive / ต้อง Follow-up มาก / รอคำสั่ง' } }
+];
+
+const PASS_SCORE = 80; // >= 80 = ผ่าน
+
+// เขตพื้นที่ — หัวหน้างานเห็นเฉพาะผู้สมัครในเขตของตัวเอง (กำหนดในคอลัมน์ region ของแท็บ Users)
+const REGIONS = [
+  { id: 'BKK_SO',   name: 'กรุงเทพฯ และภาคใต้ (BKK + South)' },
+  { id: 'EAST_LNE', name: 'ภาคตะวันออกและอีสานตอนล่าง (East + Lower NE)' },
+  { id: 'NORTH',    name: 'ภาคเหนือ (North)' }
+];
+const REGION_TH = REGIONS.reduce((m, r) => (m[r.id] = r.name, m), {});
+const REGION_SHORT = { BKK_SO: 'เขต BKK+ใต้', EAST_LNE: 'เขตตะวันออก+อีสานล่าง', NORTH: 'เขตเหนือ' };
+
+const LEVEL_TH = { High: 'สูง', Medium: 'กลาง', Low: 'ต่ำ' };
+const ROLE_TH = { recruiter: 'ผู้สรรหา (Recruiter)', supervisor: 'หัวหน้างาน (Supervisor)' };
+const ROLE_SHORT = { recruiter: 'ผู้สรรหา', supervisor: 'หัวหน้างาน' };
+
+const STATUS = {
+  pending_prescreen:  { label: 'รอ Pre-screen',        cls: 'teal' },
+  prescreen_failed:   { label: 'ไม่ผ่าน Pre-screen',    cls: 'bad' },
+  pending_recruiter:  { label: 'รอผู้สรรหาประเมิน',      cls: 'teal' },
+  pending_supervisor: { label: 'รอหัวหน้างานประเมิน',    cls: 'warn' },
+  completed:          { label: 'เสร็จสิ้น',              cls: 'good' }
+};
+
+/* ---------------- state + api ---------------- */
+
+const S = {
+  token: null, user: null,
+  candidates: [], prescreens: [], assessments: [],
+  view: 'login', current: null,
+  form: null, psForm: null
+};
+try {
+  const saved = JSON.parse(sessionStorage.getItem('ba_session') || 'null');
+  if (saved) { S.token = saved.token; S.user = saved.user; }
+} catch (e) {}
+
+async function api(action, body) {
+  const res = await fetch(CONFIG.API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(Object.assign({ action, token: S.token }, body || {}))
+  });
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || 'REQUEST_FAILED');
+  return data;
+}
+
+/* ---------------- rendering ---------------- */
+
+const app = document.getElementById('app');
+const candMeta = c => [c.branch, REGION_TH[c.region], c.phone].filter(Boolean).join(' · ');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function render() {
+  if (S.view === 'login') return renderLogin();
+  app.innerHTML = `
+    <div class="topbar">
+      <span class="logo">ระบบประเมินผู้สมัคร BA</span>
+      <div class="who"><b>${esc(S.user.name)}</b><br><span class="role-line">${ROLE_TH[S.user.role] || esc(S.user.role)} · </span>${
+        S.user.role === 'supervisor' && S.user.region ? esc(REGION_SHORT[S.user.region] || S.user.region) + ' · ' : ''
+        }<a href="#" id="logout" style="color:var(--muted)">ออกจากระบบ</a></div>
+    </div>
+    <div class="wrap view" id="main"></div>`;
+  document.getElementById('logout').onclick = e => { e.preventDefault(); logout(); };
+  if (S.view === 'list') renderList();
+  else if (S.view === 'prescreen') renderPrescreen();
+  else if (S.view === 'form') renderForm();
+  else if (S.view === 'detail') renderDetail();
+}
+
+function renderLogin(err, busy) {
+  app.innerHTML = `
+    <div class="login-page view"><div class="card login-card">
+      <div class="login-mark">BA</div>
+      <h1>ระบบประเมินผู้สมัคร BA</h1>
+      <p>แบบประเมินผู้สมัครตำแหน่ง Beauty Advisor</p>
+      <div class="field-label" style="text-align:left">เบอร์โทรศัพท์ผู้ประเมิน</div>
+      <input id="tel" type="tel" inputmode="tel" placeholder="08xxxxxxxx" autocomplete="tel" ${busy?'disabled':''}>
+      <button class="btn primary" id="loginBtn" style="width:100%;margin-top:14px" ${busy?'disabled':''}>
+        ${busy ? 'กำลังตรวจสอบ…' : 'เข้าสู่ระบบ'}</button>
+      ${err ? `<div class="msg-error">${esc(err)}</div>` : ''}
+    </div></div>`;
+  const go = () => login(document.getElementById('tel').value);
+  document.getElementById('loginBtn').onclick = go;
+  document.getElementById('tel').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+}
+
+async function login(tel) {
+  renderLogin(null, true);
+  try {
+    const r = await api('login', { tel });
+    S.token = r.token; S.user = r.user;
+    sessionStorage.setItem('ba_session', JSON.stringify({ token: r.token, user: r.user }));
+    await loadData();
+  } catch (e) {
+    const msg = /USER_NOT_FOUND/.test(e.message)
+      ? 'ไม่พบเบอร์นี้ในรายชื่อผู้ประเมิน กรุณาติดต่อผู้ดูแลระบบ'
+      : 'เชื่อมต่อไม่สำเร็จ: ' + e.message;
+    renderLogin(msg);
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('ba_session');
+  S.token = null; S.user = null; S.view = 'login';
+  render();
+}
+
+async function loadData() {
+  app.innerHTML = `<div class="loading">กำลังโหลดข้อมูล…</div>`;
+  try {
+    const r = await api('getData');
+    S.user = r.user; S.candidates = r.candidates;
+    S.prescreens = r.prescreens; S.assessments = r.assessments;
+    S.view = 'list'; render();
+  } catch (e) {
+    if (/UNAUTHORIZED/.test(e.message)) return logout();
+    app.innerHTML = `<div class="wrap"><div class="msg-error">โหลดข้อมูลไม่สำเร็จ: ${esc(e.message)}</div>
+      <button class="btn" style="margin-top:12px" onclick="loadData()">ลองใหม่</button></div>`;
+  }
+}
+
+/* ---------------- list ---------------- */
+
+function asmtOf(cid, role) {
+  return S.assessments.find(a => String(a.candidate_id) === String(cid) && a.role === role);
+}
+function prescreenOf(cid) {
+  return S.prescreens.find(p => String(p.candidate_id) === String(cid));
+}
+
+function actionFor(c) {
+  if (S.user.role === 'recruiter') {
+    if (c.status === 'pending_prescreen') return { label: 'Pre-screen', mode: 'prescreen', primary: true };
+    if (c.status === 'pending_recruiter') return { label: 'ประเมิน', mode: 'form', primary: true };
+    return { label: 'ดูผล', mode: 'detail' };
+  }
+  if (c.status === 'pending_supervisor') return { label: 'ประเมิน', mode: 'form', primary: true };
+  return { label: 'ดูผล', mode: 'detail' };
+}
+
+function resultChip(a, roleShort) {
+  if (!a || a.hidden) return '';
+  const pass = a.total >= PASS_SCORE;
+  return `<span class="chip ${pass ? 'good' : 'bad'}">${roleShort} ${a.total} · ${pass ? 'ผ่าน' : 'ไม่ผ่าน'}</span>`;
+}
+
+function renderList(filter) {
+  const main = document.getElementById('main');
+  const f = (filter || '').toLowerCase();
+  const visible = S.user.role === 'supervisor'
+    ? S.candidates.filter(c => c.status === 'pending_supervisor' || c.status === 'completed')
+    : S.candidates;
+
+  const rows = visible
+    .filter(c => !f || [c.first_name, c.nickname, c.branch, REGION_TH[c.region]].some(v => String(v||'').toLowerCase().includes(f)))
+    .map(c => {
+      const st = STATUS[c.status] || { label: c.status, cls: 'mute' };
+      const act = actionFor(c);
+      return `
+      <div class="cand">
+        <div class="info">
+          <div class="name">${esc(c.first_name)}${c.nickname ? ` (${esc(c.nickname)})` : ''}</div>
+          <div class="meta">${esc(candMeta(c))}</div>
+        </div>
+        <div class="results">
+          ${resultChip(asmtOf(c.id, 'recruiter'), 'R')}
+          ${resultChip(asmtOf(c.id, 'supervisor'), 'S')}
+          <span class="chip ${st.cls}">${st.label}</span>
+        </div>
+        <button class="btn ${act.primary?'primary':''}" data-id="${esc(c.id)}" data-mode="${act.mode}">${act.label}</button>
+      </div>`;
+    }).join('');
+
+  main.innerHTML = `
+    <div class="list-head">
+      <h2>ผู้สมัคร (${visible.length})</h2>
+      <div class="spacer"></div>
+      <input class="search" id="q" placeholder="ค้นหาชื่อ / ชื่อเล่น / สาขา / เขต" value="${esc(filter||'')}">
+      <button class="btn" id="refresh" title="โหลดข้อมูลใหม่">⟳</button>
+      ${S.user.role === 'recruiter' ? '<button class="btn primary" id="addBtn">+ เพิ่มผู้สมัคร</button>' : ''}
+    </div>
+    <div id="addForm" hidden></div>
+    ${rows || '<div class="loading">' + (S.user.role === 'supervisor'
+        ? 'ยังไม่มีผู้สมัครในเขตของคุณที่รอประเมิน' : 'ยังไม่มีผู้สมัครในระบบ') + '</div>'}`;
+
+  main.querySelectorAll('button[data-id]').forEach(b => b.onclick = () => {
+    S.current = S.candidates.find(c => String(c.id) === b.dataset.id);
+    S.view = b.dataset.mode; render();
+  });
+  document.getElementById('q').oninput = e => renderList(e.target.value);
+  document.getElementById('refresh').onclick = () => loadData();
+  const addBtn = document.getElementById('addBtn');
+  if (addBtn) addBtn.onclick = () => showAddForm();
+}
+
+function showAddForm() {
+  const box = document.getElementById('addForm');
+  box.hidden = false;
+  box.innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <h3>เพิ่มผู้สมัครใหม่</h3>
+      <div class="grid-2">
+        <div><div class="field-label">ชื่อจริง *</div><input id="a-name"></div>
+        <div><div class="field-label">ชื่อเล่น</div><input id="a-nick"></div>
+        <div><div class="field-label">เขต *</div>
+          <select id="a-region">
+            <option value="">— เลือกเขต —</option>
+            ${REGIONS.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('')}
+          </select></div>
+        <div><div class="field-label">สาขาที่สมัคร *</div><input id="a-branch" placeholder="เช่น Watsons สยามสแควร์"></div>
+        <div><div class="field-label">เบอร์ติดต่อ *</div><input id="a-phone" type="tel" inputmode="tel" placeholder="08xxxxxxxx"></div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <button class="btn primary" id="a-save">บันทึก</button>
+        <button class="btn" id="a-cancel">ยกเลิก</button>
+      </div>
+      <div id="a-err"></div>
+    </div>`;
+  document.getElementById('a-cancel').onclick = () => { box.hidden = true; };
+  document.getElementById('a-save').onclick = async () => {
+    const firstName = document.getElementById('a-name').value.trim();
+    const region = document.getElementById('a-region').value;
+    const branch = document.getElementById('a-branch').value.trim();
+    const phone = document.getElementById('a-phone').value.trim();
+    if (!firstName || !region || !branch || !phone) {
+      document.getElementById('a-err').innerHTML = '<div class="msg-error">กรุณากรอกชื่อจริง เขต สาขา และเบอร์ติดต่อ</div>'; return;
+    }
+    document.getElementById('a-save').disabled = true;
+    try {
+      await api('addCandidate', { firstName, region, branch, phone,
+        nickname: document.getElementById('a-nick').value.trim() });
+      await loadData();
+    } catch (e) {
+      const msg = /DUPLICATE_PHONE/.test(e.message)
+        ? 'มีผู้สมัครเบอร์นี้ในระบบแล้ว' : 'บันทึกไม่สำเร็จ: ' + e.message;
+      document.getElementById('a-err').innerHTML = `<div class="msg-error">${esc(msg)}</div>`;
+      document.getElementById('a-save').disabled = false;
+    }
+  };
+}
+
+/* ---------------- ส่วนที่ 1: Pre-screen (Recruiter เท่านั้น) ---------------- */
+
+function renderPrescreen() {
+  const c = S.current;
+  if (!S.psForm || S.psForm._cid !== c.id) {
+    S.psForm = { _cid: c.id, checks: PRESCREEN.map(q => ({ id: q.id, status: null })), comment: '' };
+  }
+  const form = S.psForm;
+  const main = document.getElementById('main');
+
+  main.innerHTML = `
+    <button class="btn ghost" id="back">← กลับหน้ารายชื่อ</button>
+    <div class="card" style="margin-top:10px">
+      <div class="eyebrow">ส่วนที่ 1 — Pre-screen โดยผู้สรรหา</div>
+      <h2 style="font-size:20px">${esc(c.first_name)}${c.nickname ? ` (${esc(c.nickname)})` : ''}</h2>
+      <div style="color:var(--muted);font-size:13.5px">${esc(candMeta(c))}</div>
+    </div>
+
+    <div class="section"><div class="card">
+      <h3>คัดกรองคุณสมบัติจำเป็น (Must-Have)</h3>
+      <p class="sub">ต้องผ่านครบทุกข้อจึงไปประเมินส่วนที่ 2 — ถ้ามีข้อไม่ผ่าน ระบบจะปิดเคสเป็น "ไม่ผ่าน Pre-screen"</p>
+      ${PRESCREEN.map((q, i) => `
+      <div class="mh-row">
+        <div class="txt"><b>${q.id}. ${esc(q.name)}</b><span>${esc(q.confirm)}</span></div>
+        <div class="seg" data-mh="${i}">
+          <button type="button" data-v="pass" class="${form.checks[i].status==='pass'?'on-pass':''}">ผ่าน</button>
+          <button type="button" data-v="fail" class="${form.checks[i].status==='fail'?'on-fail':''}">ไม่ผ่าน</button>
+        </div>
+      </div>`).join('')}
+      <div class="field-label">ความเห็นเพิ่มเติม</div>
+      <textarea id="ps-comment" style="min-height:56px">${esc(form.comment)}</textarea>
+    </div></div>
+
+    <div class="scorebar">
+      <div class="rec"><span class="lbl">ผล Pre-screen</span><br><span id="ps-result" class="chip mute">—</span></div>
+      <button class="btn primary" id="ps-submit">บันทึกผล Pre-screen</button>
+    </div>
+    <div id="ps-err"></div>`;
+
+  document.getElementById('back').onclick = () => { S.view = 'list'; render(); };
+  main.querySelectorAll('.seg[data-mh] button').forEach(b => b.onclick = () => {
+    form.checks[Number(b.parentElement.dataset.mh)].status = b.dataset.v;
+    b.parentElement.querySelectorAll('button').forEach(x => x.className = '');
+    b.className = b.dataset.v === 'pass' ? 'on-pass' : 'on-fail';
+    updatePsResult();
+  });
+  document.getElementById('ps-comment').oninput = e => form.comment = e.target.value;
+  document.getElementById('ps-submit').onclick = submitPrescreen;
+
+  function updatePsResult() {
+    const el = document.getElementById('ps-result');
+    const answered = form.checks.filter(x => x.status).length;
+    if (answered < PRESCREEN.length) {
+      el.className = 'chip mute'; el.textContent = `ตอบแล้ว ${answered}/${PRESCREEN.length} ข้อ`;
+    } else if (form.checks.every(x => x.status === 'pass')) {
+      el.className = 'chip good'; el.textContent = 'ผ่าน — ไปประเมินส่วนที่ 2 ต่อได้';
+    } else {
+      el.className = 'chip bad'; el.textContent = 'ไม่ผ่าน — เคสจะถูกปิด';
+    }
+  }
+  updatePsResult();
+}
+
+async function submitPrescreen() {
+  const form = S.psForm;
+  const errBox = document.getElementById('ps-err');
+  if (form.checks.some(x => !x.status)) {
+    errBox.innerHTML = '<div class="msg-error">กรุณาตอบให้ครบทุกข้อ</div>'; return;
+  }
+  const pass = form.checks.every(x => x.status === 'pass');
+  const btn = document.getElementById('ps-submit');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+  try {
+    await api('submitPrescreen', { candidateId: S.current.id,
+      checks: form.checks, comment: form.comment });
+    S.psForm = null;
+    if (pass) {
+      // ผ่าน → พาไปทำส่วนที่ 2 ต่อทันที
+      S.current.status = 'pending_recruiter';
+      S.view = 'form'; render();
+      loadData_silent();
+    } else {
+      await loadData();
+    }
+  } catch (e) {
+    errBox.innerHTML = `<div class="msg-error">บันทึกไม่สำเร็จ: ${esc(e.message)} — ข้อมูลยังอยู่ กดส่งซ้ำได้</div>`;
+    btn.disabled = false; btn.textContent = 'บันทึกผล Pre-screen';
+  }
+}
+
+async function loadData_silent() {
+  try {
+    const r = await api('getData');
+    S.candidates = r.candidates; S.prescreens = r.prescreens; S.assessments = r.assessments;
+  } catch (e) {}
+}
+
+/* ---------------- ส่วนที่ 2: ประเมินสมรรถนะ ---------------- */
+
+function newForm() { return { ratings: {}, comments: {} }; }
+function calcTotal(form) {
+  let t = 0;
+  COMPETENCIES.forEach(c => { const lv = form.ratings[c.id]; if (lv) t += c.scores[lv]; });
+  return t;
+}
+
+function renderForm() {
+  const c = S.current;
+  if (!S.form || S.form._cid !== c.id) { S.form = newForm(); S.form._cid = c.id; }
+  const form = S.form;
+  const main = document.getElementById('main');
+
+  main.innerHTML = `
+    <button class="btn ghost" id="back">← กลับหน้ารายชื่อ</button>
+    <div class="card" style="margin-top:10px">
+      <div class="eyebrow">ส่วนที่ 2 — ประเมินสมรรถนะ โดย${ROLE_TH[S.user.role]}</div>
+      <h2 style="font-size:20px">${esc(c.first_name)}${c.nickname ? ` (${esc(c.nickname)})` : ''}</h2>
+      <div style="color:var(--muted);font-size:13.5px">${esc(candMeta(c))}</div>
+      ${S.user.role === 'supervisor'
+        ? '<div style="font-size:12.5px;color:var(--muted);margin-top:6px">คุณจะไม่เห็นคะแนนของผู้สรรหา เพื่อให้ประเมินอย่างอิสระ</div>' : ''}
+    </div>
+
+    <div class="section"><div class="card">
+      <h3>ประเมินสมรรถนะ 6 ด้าน (เต็ม 100)</h3>
+      <p class="sub">ให้คะแนนจากสิ่งที่ผู้สมัครพูดหรือทำจริง ไม่ใช่ความรู้สึกส่วนตัว — ได้ ${PASS_SCORE} คะแนนขึ้นไปถือว่าผ่าน</p>
+      ${COMPETENCIES.map(cp => `
+      <div class="comp">
+        <div class="comp-head"><b>${cp.id}. ${esc(cp.name)} <span style="font-weight:500;color:var(--muted);font-size:12.5px">${esc(cp.en)}</span></b>
+          <span class="weight">น้ำหนัก ${cp.weight}</span>
+        </div>
+        ${cp.task ? `<div class="task">🎭 ${esc(cp.task)}</div>` : ''}
+        <div class="rate-row" data-comp="${cp.id}">
+          ${['High','Medium','Low'].map(lv => `
+            <button type="button" class="rate ${form.ratings[cp.id]===lv?'sel':''}" data-lv="${lv}">
+              <span class="lv">${LEVEL_TH[lv]} (${lv})<span class="pts">${cp.scores[lv]} คะแนน</span></span>
+              <span class="desc">${esc(cp.desc[lv])}</span>
+            </button>`).join('')}
+        </div>
+        <textarea class="q-comment" data-cm="${cp.id}"
+          placeholder="ความเห็นข้อนี้ / สิ่งที่ผู้สมัครพูดหรือทำจริง">${esc(form.comments[cp.id]||'')}</textarea>
+      </div>`).join('')}
+    </div></div>
+
+    <div class="scorebar">
+      <div class="stack">
+        <div><span class="lbl">คะแนนรวม</span>
+          <div class="total" id="sb-total">0<small>/100</small></div></div>
+        <div class="rec"><span class="lbl">ผล (ผ่านที่ ${PASS_SCORE} คะแนน)</span><br><span id="sb-rec" class="chip mute">—</span></div>
+      </div>
+      <button class="btn primary" id="submit">ส่งผลประเมิน</button>
+    </div>
+    <div id="f-err"></div>`;
+
+  document.getElementById('back').onclick = () => { S.view = 'list'; render(); };
+
+  main.querySelectorAll('.rate-row').forEach(row => row.querySelectorAll('.rate').forEach(b => b.onclick = () => {
+    form.ratings[Number(row.dataset.comp)] = b.dataset.lv;
+    row.querySelectorAll('.rate').forEach(x => x.classList.remove('sel'));
+    b.classList.add('sel');
+    updateScorebar();
+  }));
+  main.querySelectorAll('textarea[data-cm]').forEach(t => t.oninput = () => { form.comments[Number(t.dataset.cm)] = t.value; });
+  document.getElementById('submit').onclick = submitForm;
+
+  function updateScorebar() {
+    const total = calcTotal(form);
+    document.getElementById('sb-total').innerHTML = `${total}<small>/100</small>`;
+    const done = Object.keys(form.ratings).length === COMPETENCIES.length;
+    const el = document.getElementById('sb-rec');
+    if (done) {
+      const pass = total >= PASS_SCORE;
+      el.className = 'chip ' + (pass ? 'good' : 'bad');
+      el.textContent = pass ? 'ผ่าน (PASS)' : 'ไม่ผ่าน (FAIL)';
+    } else {
+      el.className = 'chip mute';
+      el.textContent = `ให้คะแนนแล้ว ${Object.keys(form.ratings).length}/${COMPETENCIES.length} ด้าน`;
+    }
+  }
+  updateScorebar();
+}
+
+async function submitForm() {
+  const form = S.form;
+  const errBox = document.getElementById('f-err');
+  if (Object.keys(form.ratings).length < COMPETENCIES.length) {
+    errBox.innerHTML = '<div class="msg-error">กรุณาให้คะแนนครบทั้ง 6 ด้านก่อนส่ง</div>';
+    errBox.scrollIntoView({ block: 'nearest' });
+    return;
+  }
+  const total = calcTotal(form);
+  const btn = document.getElementById('submit');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+  try {
+    await api('submit', { candidateId: S.current.id, payload: {
+      ratings: form.ratings, comments: form.comments,
+      total, result: total >= PASS_SCORE ? 'PASS' : 'FAIL'
+    }});
+    S.form = null;
+    await loadData();
+  } catch (e) {
+    errBox.innerHTML = `<div class="msg-error">บันทึกไม่สำเร็จ: ${esc(e.message)} — คะแนนยังอยู่ในหน้านี้ กดส่งซ้ำได้</div>`;
+    btn.disabled = false; btn.textContent = 'ส่งผลประเมิน';
+  }
+}
+
+/* ---------------- หน้าสรุปผล ---------------- */
+
+function renderDetail() {
+  const c = S.current;
+  const ps = prescreenOf(c.id);
+  const rec = asmtOf(c.id, 'recruiter');
+  const sup = asmtOf(c.id, 'supervisor');
+  const st = STATUS[c.status] || { label: c.status, cls: 'mute' };
+
+  const asmtCell = (a, cp) => {
+    if (!a || a.hidden) return '<td class="num">—</td>';
+    const lv = a.ratings ? a.ratings[cp.id] : null;
+    const cm = a.comments ? a.comments[cp.id] : '';
+    return `<td class="num">${lv ? `${LEVEL_TH[lv]} · ${cp.scores[lv]}` : '—'}
+      ${cm ? `<span class="q-note">${esc(cm)}</span>` : ''}</td>`;
+  };
+
+  const hideRec = !!(rec && rec.hidden);          // หัวหน้างานไม่เห็นคะแนนผู้สรรหา
+  const showRec = !!(rec && !rec.hidden);
+
+  const totalRow = a => (!a || a.hidden) ? '—'
+    : `${a.total} · ${a.total >= PASS_SCORE ? 'ผ่าน' : 'ไม่ผ่าน'}`;
+
+  document.getElementById('main').innerHTML = `
+    <button class="btn ghost" id="back">← กลับหน้ารายชื่อ</button>
+    <div class="card" style="margin-top:10px">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <h2 style="font-size:20px;flex:1">${esc(c.first_name)}${c.nickname ? ` (${esc(c.nickname)})` : ''}</h2>
+        ${resultChip(rec, 'ผู้สรรหา')} ${resultChip(sup, 'หัวหน้างาน')}
+        <span class="chip ${st.cls}">${st.label}</span>
+      </div>
+      <div style="color:var(--muted);font-size:13.5px">${esc(candMeta(c))}</div>
+    </div>
+
+    ${ps ? `<div class="section"><div class="card">
+      <h3>ผล Pre-screen (โดยผู้สรรหา)</h3>
+      <p class="sub">โดย ${esc(ps.by_name || '-')} · ${esc(String(ps.at||'').slice(0,16).replace('T',' '))}</p>
+      <div style="font-size:13.5px">${PRESCREEN.map(q => {
+        const v = ps.checks ? (ps.checks.find(x => x.id === q.id) || {}).status : null;
+        return `<span class="chip ${v==='pass'?'good':'bad'}" style="margin:2px">${esc(q.name)}: ${v==='pass'?'ผ่าน':'ไม่ผ่าน'}</span>`;
+      }).join(' ')}</div>
+      ${ps.comment ? `<div class="field-label">ความเห็น</div><div>${esc(ps.comment)}</div>` : ''}
+    </div></div>` : ''}
+
+    ${(showRec || sup) ? `<div class="section"><div class="card">
+      <h3>คะแนนสมรรถนะรายด้าน</h3>
+      ${hideRec ? '<p class="sub">หัวหน้างานไม่เห็นคะแนนของผู้สรรหา — ประเมินอิสระจากกัน</p>' : ''}
+      <div class="cmp-wrap"><table class="cmp">
+        <thead><tr><th>ด้าน</th>
+          ${showRec ? `<th style="text-align:right">ผู้สรรหา (${esc(rec.assessor_name)})</th>` : ''}
+          <th style="text-align:right">หัวหน้างาน${sup && !sup.hidden ? ` (${esc(sup.assessor_name)})` : ''}</th>
+        </tr></thead>
+        <tbody>
+          ${COMPETENCIES.map(cp => `<tr><td>${cp.id}. ${esc(cp.name)}</td>${showRec ? asmtCell(rec, cp) : ''}${asmtCell(sup, cp)}</tr>`).join('')}
+          <tr><td><b>รวม / ผล</b></td>
+            ${showRec ? `<td class="num"><b>${totalRow(rec)}</b></td>` : ''}
+            <td class="num"><b>${totalRow(sup)}</b></td></tr>
+        </tbody>
+      </table></div>
+    </div></div>` : ''}
+  `;
+  document.getElementById('back').onclick = () => { S.view = 'list'; render(); };
+}
+
+/* ---------------- boot ---------------- */
+if (CONFIG.API_URL.startsWith('PASTE_')) {
+  app.innerHTML = `<div class="wrap"><div class="card" style="margin-top:40px">
+    <h2>ยังไม่ได้ตั้งค่า API</h2>
+    <p>เปิดไฟล์ <code>index.html</code> แล้ววาง URL ของ Apps Script Web App (ลงท้าย <code>/exec</code>)
+    ลงในค่า <code>CONFIG.API_URL</code> ด้านบนของสคริปต์ — ดูขั้นตอนทั้งหมดใน README.md</p>
+  </div></div>`;
+} else if (S.token) {
+  loadData();
+} else {
+  render();
+}
+</script>
+</body>
+</html>
