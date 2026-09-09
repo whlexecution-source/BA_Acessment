@@ -235,7 +235,7 @@
    ห้ามใส่ API key หรือรหัสผ่านใดๆ ในไฟล์นี้
 ================================================================ */
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbwvRmRPTG0TfyB45DKIT587uTXGmplOjAhqOLRnHx8aLRxcCDEyqukFZe_5_U8JJfFgHA/exec'
+  API_URL: 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE'
 };
 
 /* ---------------- เกณฑ์ประเมิน (ตาม BA_Candidate_Assessment_Watsons.xlsx) */
@@ -303,6 +303,7 @@ const STATUS = {
   pending_prescreen:  { label: 'รอ Pre-screen',        cls: 'teal' },
   prescreen_failed:   { label: 'ไม่ผ่าน Pre-screen',    cls: 'bad' },
   pending_recruiter:  { label: 'รอผู้สรรหาประเมิน',      cls: 'teal' },
+  recruiter_failed:   { label: 'ไม่ผ่านผู้สรรหา',        cls: 'bad' },
   pending_supervisor: { label: 'รอหัวหน้างานประเมิน',    cls: 'warn' },
   completed:          { label: 'เสร็จสิ้น',              cls: 'good' }
 };
