@@ -772,8 +772,11 @@ function renderDetail() {
       <h3>ผล Pre-screen (โดยผู้สรรหา)</h3>
       <p class="sub">โดย ${esc(ps.by_name || '-')} · ${esc(String(ps.at||'').slice(0,16).replace('T',' '))}</p>
       <div style="font-size:13.5px">${PRESCREEN.map(q => {
-        const v = ps.checks ? (ps.checks.find(x => x.id === q.id) || {}).status : null;
-        return `<span class="chip ${v==='pass'?'good':'bad'}" style="margin:2px">${esc(q.name)}: ${v==='pass'?'ผ่าน':'ไม่ผ่าน'}</span>`;
+        const hit = (ps.checks || []).find(x => Number(x.id) === q.id);
+        // เคสเก่าที่ทำตอนฟอร์มยังไม่มีข้อนี้ = ไม่ได้ถาม ไม่ใช่ไม่ผ่าน
+        if (!hit) return `<span class="chip mute" style="margin:2px">${esc(q.name)}: ไม่ได้ถาม</span>`;
+        const pass = hit.status === 'pass';
+        return `<span class="chip ${pass?'good':'bad'}" style="margin:2px">${esc(q.name)}: ${pass?'ผ่าน':'ไม่ผ่าน'}</span>`;
       }).join(' ')}</div>
       ${ps.comment ? `<div class="field-label">ความเห็น</div><div>${esc(ps.comment)}</div>` : ''}
     </div></div>` : ''}
